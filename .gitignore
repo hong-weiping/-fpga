@@ -1,0 +1,13 @@
+**/*_Runs/
+**/log/
+**/.dide/
+**/node_modules/
+**/project.private.config.json
+**/*.local.json
+**/.env
+**/.env.*
+!**/.env.example
+**/*.log
+**/*.logw
+**/*.bit
+**/*.db

@@ -1,0 +1,54 @@
+<view class="wrap">
+ <view class="page-head"><view><view class="heading">万达广场</view><view class="head-caption">智慧管理中心</view></view><view class="location-pill"><view class="location-dot"></view>福州</view></view>
+ <view wx:if="{{mode === 'mock'}}" class="banner">模拟演示 · 当前操作不会控制实际设备</view>
+ <view wx:if="{{error}}" class="error-banner">{{error}}</view>
+
+ <view class="fire-card {{fireActive ? 'fire-active' : ''}}">
+  <view class="fire-top"><view class="fire-symbol">!</view><view class="fire-copy"><view class="fire-title">{{fireActive ? '火灾报警' : '消防状态'}}</view><view class="fire-message">{{fireMessage}}</view></view></view>
+  <view wx:if="{{fireVibrationError}}" class="fire-message">{{fireVibrationError}}</view>
+  <button wx:if="{{fireActive}}" class="alarm-button" bindtap="acknowledgeFire" disabled="{{fireAcknowledged}}">{{fireAcknowledged ? '已确认提醒' : '确认提醒，停止震动'}}</button>
+  <view wx:if="{{fireActive}}" class="fire-help">确认仅停止手机震动，现场报警继续。</view>
+ </view>
+
+ <view class="weather-card">
+  <view class="weather-top"><view class="weather-kicker">福州天气</view><view class="weather-tag">室外温度</view></view>
+  <view class="weather-main"><view><view class="outdoor-value">{{outdoorTemperature}}<text>°</text></view><view class="weather-description">{{weatherText}}</view></view><view class="weather-art"><view class="weather-orbit orbit-one"></view><view class="weather-orbit orbit-two"></view><text class="weather-icon">{{weatherIcon}}</text></view></view>
+  <view class="weather-bottom"><view class="beijing-time">{{beijingNow}}</view><view class="weather-freshness">北京时间 · {{weatherFreshness}}</view></view>
+  <view class="weather-detail-toggle" bindtap="toggleWeatherDetails">数据详情<text>{{showWeatherDetails ? '收起' : '展开'}}</text></view>
+  <view wx:if="{{showWeatherDetails}}" class="weather-details"><view>{{clockSource}}</view><view>观测时间：{{weatherUpdatedAt}}</view><view>获取时间：{{weatherFetchedAt}}</view><view>每 30 分钟获取 · 来源 Open-Meteo</view></view>
+  <view wx:if="{{environmentError}}" class="weather-warning">{{environmentError}}</view>
+ </view>
+
+ <view class="section-head"><view class="section-title">室内环境</view><text class="section-note">{{freshness}}</text></view>
+ <view class="metrics"><view class="metric temperature-card"><view class="metric-head"><text>室内温度</text><view class="sensor-symbol thermometer"><view></view></view></view><view class="number">{{temperature}}<text>℃</text></view></view><view class="metric humidity-card"><view class="metric-head"><text>室内湿度</text><view class="sensor-symbol droplet"></view></view><view class="number">{{humidity}}<text>%</text></view></view></view>
+ <view class="data-timestamp">更新于 {{updatedAt}}</view>
+
+ <view class="section-head"><view class="section-title">设备控制</view><text class="section-note">{{busy ? '执行中…' : ''}}</text></view>
+ <view class="card">
+  <view class="card-head"><view class="title-group"><view class="icon-box icon-audio">♪</view><view><view class="title">音量</view><view class="caption">{{actualVolume === null ? '等待设备上报' : '已确认 ' + actualVolume + '%'}}</view></view></view><view class="setting-value">{{volume}}<text>%</text></view></view>
+  <slider class="control-slider" min="0" max="100" value="{{volume}}" disabled="{{!volumeControlEnabled || busy || noticeBusy}}" bindchanging="onVolumeChanging" bindchange="onVolume" activeColor="#3376d5" backgroundColor="#e8eeeb" block-size="22" block-color="#ffffff"/>
+  <view class="scale-labels"><text>安静</text><text>响亮</text></view>
+  <view class="switch-row"><view><view class="row-title">一键静音</view><view class="caption">{{muted ? '已静音' : '声音开启'}}</view></view><switch checked="{{muted}}" disabled="{{!controlsEnabled || busy || noticeBusy}}" bindchange="onMute" color="#3376d5"/></view>
+ </view>
+ <view class="card">
+  <view class="card-head"><view class="title-group"><view class="icon-box icon-screen"><view class="screen-shape"></view></view><view><view class="title">屏幕播放</view></view></view><view class="soft-tag">{{autoPlay ? '自动' : '手动'}}</view></view>
+  <view class="buttons playback-buttons"><button class="button-secondary" disabled="{{!controlsEnabled || busy || noticeBusy}}" data-command="prev_image" bindtap="onCommand"><text class="button-arrow">‹</text>上一张</button><button class="button-primary" disabled="{{!controlsEnabled || busy || noticeBusy}}" data-command="next_image" bindtap="onCommand">下一张<text class="button-arrow">›</text></button></view>
+  <view class="switch-row"><view><view class="row-title">自动播放</view></view><switch checked="{{autoPlay}}" disabled="{{!controlsEnabled || busy || noticeBusy}}" bindchange="onAuto" color="#3376d5"/></view>
+ </view>
+ <view class="card">
+  <view class="card-head"><view class="title-group"><view class="icon-box icon-bright">☼</view><view><view class="title">全局亮度</view><view class="caption">{{actualBrightness === null ? '等待设备确认' : '已确认 ' + actualBrightness + '%'}}</view></view></view><view class="setting-value">{{brightness}}<text>%</text></view></view>
+  <view class="switch-row"><view><view class="row-title">亮度自适应</view><view class="caption">{{autoBrightness ? '随环境光调节' : '手动调节'}}</view></view><switch checked="{{autoBrightness}}" disabled="{{!controlsEnabled || !autoBrightnessSupported || busy || noticeBusy}}" bindchange="onAutoBrightness" color="#3376d5"/></view>
+  <view class="hint" wx:if="{{autoBrightnessSupported}}">{{lightSensorOk === true ? '光感正常' : lightSensorOk === false ? '光感未就绪，亮度保持 100%' : '等待光感状态'}}</view>
+  <view class="hint" wx:else>等待支持自适应的新固件连接</view>
+  <slider class="control-slider" min="0" max="100" step="1" value="{{brightness}}" disabled="{{autoBrightness || !brightnessControlEnabled || busy || noticeBusy}}" bindchanging="onBrightnessChanging" bindchange="onBrightness" activeColor="#c18a3b" backgroundColor="#efece6" block-size="22" block-color="#ffffff"/>
+  <view class="scale-labels"><text>柔和</text><text>明亮</text></view><view class="hint" wx:if="{{!autoBrightness}}">亮度 0% 时黑屏，拖动滑块可恢复。</view>
+ </view>
+ <view class="command-receipt"><view class="receipt-marker {{busy ? 'receipt-busy' : ''}}"></view><view><view class="receipt-text">{{commandStatus}}</view></view></view>
+ <view wx:if="{{controlsError}}" class="error-banner">控制状态：{{controlsError}}</view>
+
+ <view class="section-head"><view class="section-title">应急通知</view></view>
+ <view class="card notice-card"><view class="card-head"><view class="title-group"><view class="icon-box icon-notice">♡</view><view><view class="title">寻人广播</view></view></view></view><view class="notice-message">请走失儿童与家长前往<text>商场一楼广场中心</text>集合。</view><view class="buttons"><button class="button-primary" bindtap="noticeCommand" data-action="on" disabled="{{noticeBusy || busy}}" loading="{{noticeBusy}}">发布通知</button><button class="button-secondary" bindtap="noticeCommand" data-action="off">取消通知</button></view><view class="notice-status">{{noticeState}}</view><button class="text-button" bindtap="noticeCommand" data-action="query" disabled="{{noticeBusy || busy}}">刷新状态</button><view class="hint">火灾报警优先播放。</view></view>
+
+ <view class="card connection-card"><view class="settings-toggle" bindtap="toggleConnection"><view class="title-group"><view class="icon-box icon-settings">⚙</view><view><view class="title">连接设置</view><view class="caption connection-text">{{connection}}</view></view></view><text class="expand-sign">{{showConnection ? '−' : '+'}}</text></view><view wx:if="{{showConnection}}" class="connection-fields"><view class="field-label">后端地址</view><input value="{{baseUrl}}" bindinput="onAddress" placeholder="http://电脑IP:3000" placeholder-class="input-placeholder"/><view class="field-label">访问口令</view><input password value="{{accessToken}}" bindinput="onToken" placeholder="输入后端访问口令" placeholder-class="input-placeholder"/><button class="button-primary connect-button" bindtap="connect" loading="{{connecting}}" disabled="{{connecting}}">{{connecting ? '正在连接…' : '保存并连接'}}</button><view wx:if="{{connectionError}}" class="error-banner">{{connectionError}}</view><view class="hint">后端连接状态不代表设备在线。</view></view></view>
+ 
+</view>
